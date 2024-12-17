@@ -2,7 +2,8 @@ import movieModel from './movieModel';
 import asyncHandler from 'express-async-handler';
 import express from 'express';
 import {
-    getUpcomingMovies
+    getUpcomingMovies,
+    getMovieGenres
   } from '../tmdb-api';
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.get('/', asyncHandler(async (req, res) => {
     };
     res.status(200).json(returnObject);
 }));
+
 // Get movie details
 router.get('/:id', asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id);
@@ -37,10 +39,26 @@ router.get('/:id', asyncHandler(async (req, res) => {
         res.status(404).json({message: 'The movie you requested could not be found.', status_code: 404});
     }
 }));
-
+// Get upcoming movies from TMDB
 router.get('/tmdb/upcoming', asyncHandler(async (req, res) => {
-    const upcomingMovies = await getUpcomingMovies();
-    res.status(200).json(upcomingMovies);
+    try {
+        const upcomingMovies = await getUpcomingMovies();
+        res.status(200).json(upcomingMovies);
+    } catch (error) {
+        console.error('Error fetching upcoming movies:', error.message);
+        res.status(500).json({ message: 'Failed to fetch upcoming movies from TMDB.', error: error.message });
+    }
+}));
+
+// 新增：获取电影流派列表
+router.get('/tmdb/genres', asyncHandler(async (req, res) => {
+    try {
+        const genres = await getMovieGenres();
+        res.status(200).json(genres);
+    } catch (error) {
+        console.error('Error fetching movie genres:', error.message);
+        res.status(500).json({ message: 'Failed to fetch movie genres from TMDB.', error: error.message });
+    }
 }));
 
 export default router;
